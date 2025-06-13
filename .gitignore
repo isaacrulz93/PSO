@@ -1,4 +1,4 @@
 -r cached_covs/
 -r masks
 report.log
--r .idea
+-r .idea/
