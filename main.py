@@ -3,6 +3,7 @@ import os
 import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
+from pyswarms.single import GlobalBestPSO
 from sklearn.metrics import cohen_kappa_score, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from pyswarms.single.general_optimizer import GeneralOptimizerPSO
@@ -17,9 +18,9 @@ from dataloader_dssr import load_dataset
 def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode="GLRSQ", verbose=True, save_suffix=None):
     warnings.filterwarnings("ignore")
 
-    THRESHOLD = 0.6
-    ALPHA = 0.6
-    N_PARTICLES = 20
+    THRESHOLD = 0.6    #바꿔봄직함
+    ALPHA = 0.6        #바꿔봄직함
+    N_PARTICLES = 20   #바꿔봄직함
     MAX_ITERS = 30
     PATIENCE = 5
 
@@ -122,6 +123,14 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
             velocity_clamp=(-0.1, 0.1),
             topology=Star()
         )
+#
+#         optimizer = GlobalBestPSO(
+#             n_particles=N_PARTICLES,
+#             dimensions=CHANNEL_DIM,
+#             options=options,
+# #            bounds=(np.zeros(CHANNEL_DIM), np.ones(CHANNEL_DIM)),
+#             velocity_clamp=(-0.1, 0.1),
+#         )
 
         subject_id = f"sub{subject}" if meta is not None else dataset_name
 
@@ -146,7 +155,7 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
         X_train_final = apply_mask_to_spd(X_train, best_mask)
         X_val_final = apply_mask_to_spd(X_val, best_mask)
 
-        clf = GLRSQ(n_classes=4, max_iter=5, learning_rate=0.1)
+        clf = GLRSQ(n_classes=4, max_iter=50, learning_rate=0.1)
         clf.fit(X_train_final, y_train)
         y_pred = clf.predict(X_val_final)
 
