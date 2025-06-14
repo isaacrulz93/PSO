@@ -23,7 +23,7 @@ def evaluate_fitness(X_train, y_train, X_val, y_val, original_dim, selected_dim,
     """
     Fitness = (1 - rho) * (selected_dim / original_dim) + rho * kappa
     """
-    clf = GLRSQ(n_classes=len(np.unique(y_train)), max_iter=30, learning_rate=0.1)
+    clf = GLRSQ(n_classes=len(np.unique(y_train)), max_iter=5, learning_rate=0.1)
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_val)
 

@@ -3,23 +3,24 @@ import os
 import warnings
 import pandas as pd
 import matplotlib.pyplot as plt
-from pyswarms.single import GlobalBestPSO
 from sklearn.metrics import cohen_kappa_score, accuracy_score
 from sklearn.preprocessing import LabelEncoder
 from pyswarms.single.general_optimizer import GeneralOptimizerPSO
+from pyswarms.single.global_best import GlobalBestPSO
 from pyswarms.backend.topology import Star
 
 from pyriemann.estimation import Covariances
-from pyriemann.classification import MDM
 from pso_utils import apply_mask_to_spd, threshold_mask, evaluate_fitness
 from GLRSQ import GLRSQ
 from dataloader_dssr import load_dataset
+from joblib import Parallel, delayed
+
 
 def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode="GLRSQ", verbose=True, save_suffix=None):
     warnings.filterwarnings("ignore")
 
     THRESHOLD = 0.6    #바꿔봄직함
-    ALPHA = 0.6        #바꿔봄직함
+    ALPHA = 0.001        #바꿔봄직함
     N_PARTICLES = 20   #바꿔봄직함
     MAX_ITERS = 30
     PATIENCE = 5
@@ -76,6 +77,7 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
         best_cost = np.inf
         no_improve = 0
 
+#objective는 fitness를 한번 찾음.
         def objective(particles):
             nonlocal best_cost, no_improve
             fitnesses = []
@@ -114,24 +116,25 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
                 raise StopIteration("No improvement in best fitness")
 
             return np.array(fitnesses)
+################################################################################################################################################################################################################
 
         options = {'c1': 1.5, 'c2': 1.5, 'w': 0.73}
-        optimizer = GeneralOptimizerPSO(
+######################################################################
+        # optimizer = GeneralOptimizerPSO(
+        #     n_particles=N_PARTICLES,
+        #     dimensions=CHANNEL_DIM,
+        #     options=options,
+        #     velocity_clamp=(-0.1, 0.1),
+        #     topology=Star()
+        # )
+
+        optimizer = GlobalBestPSO(
             n_particles=N_PARTICLES,
             dimensions=CHANNEL_DIM,
             options=options,
             velocity_clamp=(-0.1, 0.1),
-            topology=Star()
         )
-#
-#         optimizer = GlobalBestPSO(
-#             n_particles=N_PARTICLES,
-#             dimensions=CHANNEL_DIM,
-#             options=options,
-# #            bounds=(np.zeros(CHANNEL_DIM), np.ones(CHANNEL_DIM)),
-#             velocity_clamp=(-0.1, 0.1),
-#         )
-
+        #################################################
         subject_id = f"sub{subject}" if meta is not None else dataset_name
 
         try:
@@ -142,6 +145,10 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
 
         best_mask = threshold_mask(best_position, threshold=THRESHOLD)
         np.save(os.path.join(mask_dir, f"best_mask_{subject_id}.npy"), best_mask)
+        ##########################이 및으로는 손댈거 없음########################################################이 및으로는 손댈거 없음##############################
+
+
+
 
         plt.plot([-c for c in best_costs])
         plt.xlabel("Iteration")
@@ -151,9 +158,9 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
         plt.tight_layout()
         plt.savefig(os.path.join(mask_dir, f"fitness_curve_{subject_id}.png"))
         plt.close()
-
         X_train_final = apply_mask_to_spd(X_train, best_mask)
         X_val_final = apply_mask_to_spd(X_val, best_mask)
+
 
         clf = GLRSQ(n_classes=4, max_iter=50, learning_rate=0.1)
         clf.fit(X_train_final, y_train)
@@ -185,3 +192,18 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
     print(f"Accuracy: {acc_mean:.4f} ± {acc_std:.4f}")
     print(f"Kappa:    {kappa_mean:.4f} ± {kappa_std:.4f}")
     print(f"MaskRatio:{dim_mean:.4f} ± {dim_std:.4f}")
+
+
+if __name__ == "__main__":
+    dataset = "BNCI2014_001"
+    fitness_mode = "GLRSQ"
+    classifier_mode = "GLRSQ"
+    suffix = f"{fitness_mode[0]}{classifier_mode[0]}"
+
+    print(f"Running {dataset} - DSSR-{suffix}...")
+    run_dssr(
+        dataset_name=dataset,
+        fitness_mode=fitness_mode,
+        classifier_mode=classifier_mode,
+        save_suffix=suffix
+    )
