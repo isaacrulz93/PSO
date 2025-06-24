@@ -18,7 +18,7 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
     warnings.filterwarnings("ignore")
 
     THRESHOLD = 0.6
-    ALPHA = 0.6
+    ALPHA = 0.001
     N_PARTICLES = 20
     MAX_ITERS = 30
     PATIENCE = 5

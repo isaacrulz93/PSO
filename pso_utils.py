@@ -19,7 +19,7 @@ def apply_mask_to_spd(Ps, mask):
     idx = np.nonzero(mask)[0]
     return Ps[:, idx][:, :, idx]  # Ps[:, idx, :][:, :, idx]도 동일
 
-def evaluate_fitness(X_train, y_train, X_val, y_val, original_dim, selected_dim, alpha=0.6):
+def evaluate_fitness(X_train, y_train, X_val, y_val, original_dim, selected_dim, alpha=0.001):
     """
     Fitness = (1 - rho) * (selected_dim / original_dim) + rho * kappa
     """
