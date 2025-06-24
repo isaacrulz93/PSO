@@ -29,4 +29,5 @@ def evaluate_fitness(X_train, y_train, X_val, y_val, original_dim, selected_dim,
 
     kappa = cohen_kappa_score(y_val, y_pred)
     penalty = selected_dim / original_dim
-    return (1 - alpha) * penalty + alpha * kappa
+    fitness = (1 - alpha) * penalty + alpha * kappa
+    return fitness

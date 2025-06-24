@@ -114,6 +114,8 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
 
             return np.array(fitnesses)
 
+
+        # PSO optimizer setup
         options = {'c1': 1.5, 'c2': 1.5, 'w': 0.73}
         optimizer = GeneralOptimizerPSO(
             n_particles=N_PARTICLES,
@@ -126,6 +128,7 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
         subject_id = f"sub{subject}" if meta is not None else dataset_name
 
         try:
+            # Run the PSO optimization
             best_cost, best_position = optimizer.optimize(objective, iters=MAX_ITERS, verbose=False)
         except StopIteration:
             best_position = optimizer.swarm.best_pos
@@ -146,6 +149,8 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
         X_train_final = apply_mask_to_spd(X_train, best_mask)
         X_val_final = apply_mask_to_spd(X_val, best_mask)
 
+
+        # Final classification / with GLRSQ. but may change to other classifiers
         clf = GLRSQ(n_classes=4, max_iter=5, learning_rate=0.1)
         clf.fit(X_train_final, y_train)
         y_pred = clf.predict(X_val_final)

@@ -26,10 +26,11 @@ class GLRSQ(BaseEstimator, ClassifierMixin):
         self.n_prototypes = n_prototypes #클래스별 프로토타입 개수
         self.max_iter = max_iter # 최대 반복 횟수
         self.lr = learning_rate # 학습률
-
-    def fit(self, X, y):
         self.prototypes_ = []
         self.labels_ = []
+
+
+    def fit(self, X, y):
         classes = np.unique(y)
 
         for cls in classes:
@@ -48,9 +49,6 @@ class GLRSQ(BaseEstimator, ClassifierMixin):
                 same_mask = (self.labels_ == yi)
                 diff_mask = ~same_mask
 
-                # if not np.any(same_mask) or not np.any(diff_mask):
-                #     continue
-
                 idx_J = np.argmin(dists[same_mask]) # 같은 클래스의 프로토타입 중 가장 가까운 것(J)
                 idx_K = np.argmin(dists[diff_mask]) # 다른 클래스의 프로토타입 중 가장 가까운 것(K)
 
@@ -68,19 +66,19 @@ class GLRSQ(BaseEstimator, ClassifierMixin):
 
                 #논문에 제시된 로지스틱 함수
                 x = (dK - dJ) / (dK + dJ + 1e-8)
-                omega = 1 / (1 + np.exp(-x))
-                omega_p = omega * (1.0 - omega)  # ϖ'(x)
+                sigmoid = 1 / (1 + np.exp(-x))
+                sigmoid_derivative = sigmoid * (1 - sigmoid)
 
                 # Cost 함수의 미분값 계산
-                grad_J = - omega_p * (4.0 * dK) / ((dJ + dK + 1e-8) ** 2) #가까워지게 가고
-                grad_K = + omega_p * (4.0 * dJ) / ((dJ + dK + 1e-8) ** 2) #멀어지게 가고
+                grad_J = - sigmoid_derivative * (4.0 * dK) / ((dJ + dK + 1e-8) ** 2) #가까워지게 가고
+                grad_K = + sigmoid_derivative * (4.0 * dJ) / ((dJ + dK + 1e-8) ** 2) #멀어지게 가고
 
                 #미분값은 각 프로토타입에(점 WJ, WK에 대한 업데이트 방향을 결정.)
                 Vj = self._logmap(WJ, Pi)
                 Vk = self._logmap(WK, Pi)
 
                 #미분값 기반으로 프로토타입 업데이트
-                self.prototypes_[J] = self._expmap(WJ, -self.lr * grad_J  * Vj)
+                self.prototypes_[J] = self._expmap(WJ, -self.lr * grad_J * Vj)
                 self.prototypes_[K] = self._expmap(WK, -self.lr * grad_K * Vk)
 
         return self
