@@ -151,7 +151,7 @@ def run_dssr(dataset_name="BNCI2014_001", fitness_mode="GLRSQ", classifier_mode=
 
 
         # Final classification / with GLRSQ. but may change to other classifiers
-        clf = GLRSQ(n_classes=4, max_iter=5, learning_rate=0.1)
+        clf = GLRSQ(n_classes=4, max_iter=30, learning_rate=0.1)
         clf.fit(X_train_final, y_train)
         y_pred = clf.predict(X_val_final)
 
